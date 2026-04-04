@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"crypto/sha256"
 	"encoding/csv"
 	"fmt"
 	"log"
@@ -11,9 +10,8 @@ import (
 	"time"
 
 	"diploma-verify/db"
+	"diploma-verify/hasher"
 )
-
-const secretKey = "DIPLOMA_SECRET_KEY"
 
 // processJob runs in a goroutine — acts as the worker
 func processJob(jobID, filePath string) {
@@ -40,12 +38,18 @@ func processJob(jobID, filePath string) {
 
 	for _, r := range records {
 		normalized := normalize(r)
-		hash := generateHash(normalized)
+		h := hasher.Generate(hasher.DiplomaData{
+			FullName:      normalized["full_name"],
+			DiplomaNumber: normalized["diploma_number"],
+			University:    normalized["university"],
+			Degree:        normalized["degree"],
+			Date:          normalized["date"],
+		})
 
 		_, dbErr := db.DB.Exec(
 			`INSERT OR IGNORE INTO diplomas (hash, full_name, diploma_number, university, degree, date, upload_job_id)
 			 VALUES (?, ?, ?, ?, ?, ?, ?)`,
-			hash,
+			h,
 			normalized["full_name"],
 			normalized["diploma_number"],
 			normalized["university"],
@@ -91,11 +95,6 @@ func normalize(row map[string]string) map[string]string {
 		}
 	}
 	return result
-}
-
-func generateHash(d map[string]string) string {
-	raw := d["full_name"] + d["diploma_number"] + d["university"] + d["date"] + secretKey
-	return fmt.Sprintf("%x", sha256.Sum256([]byte(raw)))
 }
 
 func parseCSV(path string) ([]map[string]string, error) {

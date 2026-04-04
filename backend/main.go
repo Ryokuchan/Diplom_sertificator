@@ -2,14 +2,24 @@ package main
 
 import (
 	"log"
-	"net/http"
+	"os"
 
-	"github.com/gin-gonic/gin"
 	"diploma-verify/db"
 	"diploma-verify/handlers"
+
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Println("no .env file, using environment variables")
+	}
+
+	if os.Getenv("DIPLOMA_SECRET_KEY") == "" {
+		log.Fatal("DIPLOMA_SECRET_KEY is not set")
+	}
+
 	db.Init()
 
 	r := gin.Default()

@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DiplomaVerify — Система верификации дипломов</title>
+  <link rel="stylesheet" href="diplom.css" />
+</head>
+<body>
+
+  <!-- SVG SPRITE -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+
+    <!-- shield: лендинг — криптозащита -->
+    <symbol id="ico-shield" viewBox="0 0 64 64" fill="none">
+      <path d="M32 4L8 14v18c0 14 10 26 24 30 14-4 24-16 24-30V14L32 4z" fill="#1e3a5f" stroke="#3b82f6" stroke-width="2"/>
+      <rect x="24" y="30" width="16" height="13" rx="2" fill="#3b82f6" opacity=".9"/>
+      <circle cx="32" cy="30" r="4" fill="#93c5fd"/>
+      <line x1="32" y1="27" x2="32" y2="24" stroke="#93c5fd" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
+
+    <!-- grid-upload: лендинг — Excel загрузка -->
+    <symbol id="ico-upload" viewBox="0 0 64 64" fill="none">
+      <rect x="6" y="6" width="52" height="52" rx="6" fill="#1e3a5f" stroke="#3b82f6" stroke-width="2"/>
+      <line x1="6" y1="22" x2="58" y2="22" stroke="#3b82f6" stroke-width="2"/>
+      <line x1="6" y1="38" x2="58" y2="38" stroke="#3b82f6" stroke-width="2"/>
+      <line x1="24" y1="22" x2="24" y2="58" stroke="#3b82f6" stroke-width="2"/>
+      <polyline points="38 14 44 8 50 14" stroke="#93c5fd" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="44" y1="8" x2="44" y2="20" stroke="#93c5fd" stroke-width="2.5" stroke-linecap="round"/>
+    </symbol>
+
+    <!-- search+check: лендинг — проверка -->
+    <symbol id="ico-search" viewBox="0 0 64 64" fill="none">
+      <circle cx="28" cy="28" r="18" fill="#1e3a5f" stroke="#3b82f6" stroke-width="2"/>
+      <polyline points="20 28 26 34 37 22" stroke="#93c5fd" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="41" y1="41" x2="56" y2="56" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
+    </symbol>
+
+    <!-- QR-код: работодатель -->
+    <symbol id="ico-qr" viewBox="0 0 64 64" fill="none">
+      <!-- верхний левый квадрат -->
+      <rect x="4" y="4" width="24" height="24" rx="3" fill="none" stroke="#3b82f6" stroke-width="2.5"/>
+      <rect x="10" y="10" width="12" height="12" rx="1" fill="#3b82f6"/>
+      <!-- верхний правый квадрат -->
+      <rect x="36" y="4" width="24" height="24" rx="3" fill="none" stroke="#3b82f6" stroke-width="2.5"/>
+      <rect x="42" y="10" width="12" height="12" rx="1" fill="#3b82f6"/>
+      <!-- нижний левый квадрат -->
+      <rect x="4" y="36" width="24" height="24" rx="3" fill="none" stroke="#3b82f6" stroke-width="2.5"/>
+      <rect x="10" y="42" width="12" height="12" rx="1" fill="#3b82f6"/>
+      <!-- точки нижний правый -->
+      <rect x="36" y="36" width="6" height="6" rx="1" fill="#3b82f6"/>
+      <rect x="46" y="36" width="6" height="6" rx="1" fill="#3b82f6"/>
+      <rect x="56" y="36" width="4" height="6" rx="1" fill="#3b82f6"/>
+      <rect x="36" y="46" width="6" height="6" rx="1" fill="#3b82f6"/>
+      <rect x="46" y="46" width="14" height="6" rx="1" fill="#3b82f6"/>
+      <rect x="36" y="56" width="6" height="4" rx="1" fill="#3b82f6"/>
+      <rect x="46" y="56" width="6" height="4" rx="1" fill="#3b82f6"/>
+    </symbol>
+
+    <!-- user: студент -->
+    <symbol id="ico-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="8" r="4"/>
+      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+    </symbol>
+
+    <!-- document -->
+    <symbol id="ico-doc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="8" y1="13" x2="16" y2="13"/>
+      <line x1="8" y1="17" x2="13" y2="17"/>
+    </symbol>
+
+    <!-- magnifier (sidebar) -->
+    <symbol id="ico-mag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="7"/>
+      <line x1="16.5" y1="16.5" x2="22" y2="22"/>
+    </symbol>
+
+    <!-- cloud-upload (dropzone + sidebar) -->
+    <symbol id="ico-cloud-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="16 16 12 12 8 16"/>
+      <line x1="12" y1="12" x2="12" y2="21"/>
+      <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+    </symbol>
+
+    <!-- database -->
+    <symbol id="ico-db" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <ellipse cx="12" cy="5" rx="9" ry="3"/>
+      <path d="M3 5v4c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+      <path d="M3 9v4c0 1.66 4.03 3 9 3s9-1.34 9-3V9"/>
+      <path d="M3 13v4c0 1.66 4.03 3 9 3s9-1.34 9-3v-4"/>
+    </symbol>
+
+    <!-- gear -->
+    <symbol id="ico-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </symbol>
+
+    <!-- list -->
+    <symbol id="ico-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="8" y1="6" x2="21" y2="6"/>
+      <line x1="8" y1="12" x2="21" y2="12"/>
+      <line x1="8" y1="18" x2="21" y2="18"/>
+      <circle cx="3" cy="6" r="1" fill="currentColor" stroke="none"/>
+      <circle cx="3" cy="12" r="1" fill="currentColor" stroke="none"/>
+      <circle cx="3" cy="18" r="1" fill="currentColor" stroke="none"/>
+    </symbol>
+
+    <!-- logout -->
+    <symbol id="ico-logout" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+      <polyline points="16 17 21 12 16 7"/>
+      <line x1="21" y1="12" x2="9" y2="12"/>
+    </symbol>
+
+    <!-- building -->
+    <symbol id="ico-building" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="9" width="18" height="13" rx="1"/>
+      <polyline points="3 9 12 3 21 9"/>
+      <rect x="9" y="14" width="6" height="8"/>
+    </symbol>
+
+    <!-- briefcase -->
+    <symbol id="ico-briefcase" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="7" width="20" height="14" rx="2"/>
+      <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+      <line x1="2" y1="12" x2="22" y2="12"/>
+    </symbol>
+
+  </svg>
+
+  <!-- AUTH SCREEN -->
+  <div id="screen-auth" class="screen active">
+
+    <!-- LANDING HERO -->
+    <section class="landing-hero">
+
+      <!-- Floating SVGs LEFT -->
+      <div class="float-col float-col--left" aria-hidden="true">
+        <svg class="float-svg fs-1" viewBox="0 0 80 80" fill="none">
+          <rect x="4" y="4" width="30" height="30" rx="4" stroke="#3b82f6" stroke-width="2"/>
+          <rect x="10" y="10" width="18" height="18" rx="2" fill="#3b82f6" opacity=".7"/>
+          <rect x="46" y="4" width="30" height="30" rx="4" stroke="#3b82f6" stroke-width="2"/>
+          <rect x="52" y="10" width="18" height="18" rx="2" fill="#3b82f6" opacity=".7"/>
+          <rect x="4" y="46" width="30" height="30" rx="4" stroke="#3b82f6" stroke-width="2"/>
+          <rect x="10" y="52" width="18" height="18" rx="2" fill="#3b82f6" opacity=".7"/>
+          <rect x="46" y="46" width="8" height="8" rx="1" fill="#3b82f6" opacity=".7"/>
+          <rect x="58" y="46" width="8" height="8" rx="1" fill="#3b82f6" opacity=".7"/>
+          <rect x="70" y="46" width="6" height="8" rx="1" fill="#3b82f6" opacity=".7"/>
+          <rect x="46" y="58" width="8" height="8" rx="1" fill="#3b82f6" opacity=".7"/>
+          <rect x="58" y="58" width="18" height="8" rx="1" fill="#3b82f6" opacity=".7"/>
+          <rect x="46" y="70" width="8" height="6" rx="1" fill="#3b82f6" opacity=".7"/>
+          <rect x="58" y="70" width="8" height="6" rx="1" fill="#3b82f6" opacity=".7"/>
+        </svg>
+        <svg class="float-svg fs-2" viewBox="0 0 60 60" fill="none">
+          <path d="M30 4L6 16v14c0 14 10 24 24 26 14-2 24-12 24-26V16L30 4z" stroke="#6366f1" stroke-width="2" fill="#1e2d4a"/>
+          <rect x="22" y="30" width="16" height="14" rx="2" fill="#6366f1" opacity=".8"/>
+          <circle cx="30" cy="30" r="5" fill="#a5b4fc"/>
+          <line x1="30" y1="26" x2="30" y2="22" stroke="#a5b4fc" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <svg class="float-svg fs-3" viewBox="0 0 56 56" fill="none">
+          <ellipse cx="28" cy="12" rx="20" ry="7" stroke="#22d3ee" stroke-width="2" fill="#0e2a3a"/>
+          <path d="M8 12v10c0 3.87 8.95 7 20 7s20-3.13 20-7V12" stroke="#22d3ee" stroke-width="2"/>
+          <path d="M8 22v10c0 3.87 8.95 7 20 7s20-3.13 20-7V22" stroke="#22d3ee" stroke-width="2"/>
+          <path d="M8 32v10c0 3.87 8.95 7 20 7s20-3.13 20-7V32" stroke="#22d3ee" stroke-width="2"/>
+        </svg>
+        <svg class="float-svg fs-4" viewBox="0 0 48 48" fill="none">
+          <rect x="4" y="4" width="40" height="40" rx="6" stroke="#f59e0b" stroke-width="2" fill="#1e2a1a"/>
+          <line x1="4" y1="18" x2="44" y2="18" stroke="#f59e0b" stroke-width="2"/>
+          <line x1="4" y1="30" x2="44" y2="30" stroke="#f59e0b" stroke-width="2"/>
+          <line x1="18" y1="18" x2="18" y2="44" stroke="#f59e0b" stroke-width="2"/>
+          <polyline points="30 10 36 4 42 10" stroke="#fcd34d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <line x1="36" y1="4" x2="36" y2="16" stroke="#fcd34d" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+
+      <!-- Center content -->
+      <div class="landing-hero-inner">
+        <div class="landing-logo">Diploma<span>Verify</span></div>
+        <h1 class="landing-headline">Верификация дипломов<br>нового поколения</h1>
+        <p class="landing-sub">Единая платформа для ВУЗов, студентов и работодателей.<br>Защита, прозрачность, мгновенная проверка.</p>
+        <a href="#auth-panel" class="btn-primary landing-cta" id="btn-scroll-login">Войти в систему →</a>
+      </div>
+
+      <!-- Floating SVGs RIGHT -->
+      <div class="float-col float-col--right" aria-hidden="true">
+        <svg class="float-svg fs-5" viewBox="0 0 60 60" fill="none">
+          <circle cx="26" cy="26" r="18" stroke="#34d399" stroke-width="2" fill="#0e2a1e"/>
+          <polyline points="18 26 24 32 35 20" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <line x1="39" y1="39" x2="52" y2="52" stroke="#34d399" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+        <svg class="float-svg fs-6" viewBox="0 0 64 64" fill="none">
+          <path d="M32 4H10a4 4 0 0 0-4 4v48a4 4 0 0 0 4 4h44a4 4 0 0 0 4-4V20L32 4z" stroke="#818cf8" stroke-width="2" fill="#1a1e3a"/>
+          <polyline points="32 4 32 20 56 20" stroke="#818cf8" stroke-width="2"/>
+          <line x1="16" y1="32" x2="48" y2="32" stroke="#818cf8" stroke-width="2" stroke-linecap="round"/>
+          <line x1="16" y1="40" x2="36" y2="40" stroke="#818cf8" stroke-width="2" stroke-linecap="round"/>
+          <line x1="16" y1="48" x2="42" y2="48" stroke="#818cf8" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <svg class="float-svg fs-7" viewBox="0 0 56 56" fill="none">
+          <circle cx="28" cy="28" r="22" stroke="#f472b6" stroke-width="2" fill="#2a1020"/>
+          <circle cx="28" cy="28" r="14" stroke="#f472b6" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <circle cx="28" cy="28" r="5" fill="#f472b6"/>
+        </svg>
+        <svg class="float-svg fs-8" viewBox="0 0 52 52" fill="none">
+          <rect x="4" y="14" width="44" height="30" rx="4" stroke="#38bdf8" stroke-width="2" fill="#0e1e2e"/>
+          <path d="M16 14V10a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4v4" stroke="#38bdf8" stroke-width="2"/>
+          <line x1="4" y1="26" x2="48" y2="26" stroke="#38bdf8" stroke-width="2"/>
+        </svg>
+      </div>
+
+      <div class="landing-scroll-hint">↓ Узнать больше</div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="landing-features">
+
+      <div class="landing-feature-item" data-index="01">
+        <div class="lf-number">01</div>
+        <div class="lf-icon">
+          <svg><use href="#ico-shield"/></svg>
+        </div>
+        <div class="lf-body">
+          <div class="lf-title">Криптографическая защита</div>
+          <div class="lf-desc">Каждый диплом получает уникальный хеш, хранящийся в защищённой базе данных. Подделка исключена — любое изменение документа мгновенно обнаруживается при проверке.</div>
+          <div class="lf-hint">Нажмите для подробностей</div>
+          <div class="lf-extra">Алгоритм SHA-256 генерирует цифровой отпечаток каждого документа. Хеш привязан к метаданным: ФИО, специальность, год выпуска, ВУЗ. Даже изменение одного символа даёт полностью другой хеш — система мгновенно фиксирует несоответствие и помечает диплом как недействительный.</div>
+        </div>
+        <div class="lf-accent" style="--accent:#3b82f6"></div>
+      </div>
+
+      <div class="landing-feature-item landing-feature-item--alt" data-index="02">
+        <div class="lf-number">02</div>
+        <div class="lf-icon">
+          <svg><use href="#ico-upload"/></svg>
+        </div>
+        <div class="lf-body">
+          <div class="lf-title">Массовая загрузка через Excel и CSV</div>
+          <div class="lf-desc">ВУЗы загружают данные выпускников одним файлом. Система автоматически валидирует, нормализует и ставит записи в очередь обработки — без ручного ввода.</div>
+          <div class="lf-hint">Нажмите для подробностей</div>
+          <div class="lf-extra">Поддерживаются форматы .xlsx, .xls и .csv до 50 МБ. После загрузки файл проходит валидацию структуры, нормализацию данных и попадает в очередь Redis/Kafka. Прогресс обработки отображается в реальном времени — ВУЗ видит статус каждой записи.</div>
+        </div>
+        <div class="lf-accent" style="--accent:#3b82f6"></div>
+      </div>
+
+      <div class="landing-feature-item" data-index="03">
+        <div class="lf-number">03</div>
+        <div class="lf-icon">
+          <svg><use href="#ico-qr"/></svg>
+        </div>
+        <div class="lf-body">
+          <div class="lf-title">Мгновенная проверка по QR или ID</div>
+          <div class="lf-desc">Работодатель сканирует QR-код на дипломе или вводит ID — и за секунды получает подтверждение подлинности. Никаких звонков в ВУЗ, никаких задержек.</div>
+          <div class="lf-hint">Нажмите для подробностей</div>
+          <div class="lf-extra">QR-код содержит зашифрованный токен, привязанный к записи в базе. При сканировании система сверяет токен с хешем и возвращает результат: имя, специальность, ВУЗ, год выпуска и статус документа. Вся проверка занимает менее одной секунды.</div>
+        </div>
+        <div class="lf-accent" style="--accent:#3b82f6"></div>
+      </div>
+
+    </section>
+
+    <!-- AUTH PANEL ANCHOR -->
+    <section class="landing-auth-section" id="auth-panel">
+      <div class="auth-panel">
+        <h2 class="auth-panel-title" id="auth-panel-title">Вход в систему</h2>
+        <p class="auth-panel-sub" id="auth-panel-sub">Выберите роль и введите учётные данные</p>
+
+        <div class="role-tabs">
+          <button class="role-tab active" data-role="student">Студент</button>
+          <button class="role-tab" data-role="university">ВУЗ</button>
+          <button class="role-tab" data-role="employer">Работодатель</button>
+        </div>
+
+        <form id="auth-form">
+          <div class="form-group">
+            <label class="form-label" for="auth-login">Email</label>
+            <input type="text" id="auth-login" placeholder="example@university.ru" required autocomplete="email" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="auth-password">Пароль</label>
+            <input type="password" id="auth-password" placeholder="••••••••" required minlength="6" autocomplete="current-password" />
+          </div>
+          <p class="auth-mode-links">
+            <a href="#" id="link-show-login" class="auth-link auth-link-active">Вход</a>
+            <span class="auth-mode-sep" aria-hidden="true">·</span>
+            <a href="#" id="link-show-register" class="auth-link">Регистрация</a>
+          </p>
+          <button type="submit" class="btn-primary" id="auth-submit" style="width:100%;margin-top:4px">
+            <span id="auth-submit-title">Войти</span>
+          </button>
+        </form>
+
+        <p id="auth-error" class="error-msg hidden"></p>
+
+        <!-- Форма заявки ВУЗа (показывается при роль=university + режим регистрации) -->
+        <div id="uni-apply-wrap" class="hidden">
+          <h3 class="auth-uni-title">Заявка на регистрацию ВУЗа</h3>
+          <p class="page-desc" style="margin-bottom:16px">После проверки документов администратор подтвердит учётную запись.</p>
+          <form id="uni-apply-form-inline">
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="text" id="uni-apply-email" required autocomplete="email" placeholder="rector@university.kz" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Пароль</label>
+              <input type="password" id="uni-apply-password" required minlength="6" autocomplete="new-password" placeholder="Минимум 6 символов" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Название организации</label>
+              <input type="text" id="uni-apply-org" required placeholder="Полное наименование ВУЗа" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Контактные данные</label>
+              <input type="text" id="uni-apply-notes" required placeholder="Реквизиты, контакты…" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Документы (обязательно, до 8 файлов)</label>
+              <input type="file" id="uni-apply-docs" required multiple accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" style="font-size:0.9rem" />
+            </div>
+            <button type="submit" class="btn-primary" style="width:100%;margin-top:4px">Отправить заявку</button>
+          </form>
+          <p id="uni-apply-status" class="status-bar hidden" style="margin-top:12px"></p>
+        </div>
+
+        <div class="dev-shortcuts">
+          <p>Быстрый переход (dev)</p>
+          <div class="dev-btns">
+            <button onclick="showScreen('student')" class="btn-ghost">
+              <svg class="btn-ico"><use href="#ico-user"/></svg> Студент
+            </button>
+            <button onclick="showScreen('university')" class="btn-ghost">
+              <svg class="btn-ico"><use href="#ico-building"/></svg> ВУЗ
+            </button>
+            <button onclick="showScreen('employer')" class="btn-ghost">
+              <svg class="btn-ico"><use href="#ico-briefcase"/></svg> Работодатель
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- STUDENT CABINET -->
+  <div id="screen-student" class="screen">
+    <nav class="navbar">
+      <span class="nav-logo">Diploma<span>Verify</span></span>
+      <div class="nav-divider"></div>
+      <span class="nav-role">Кабинет студента</span>
+      <button class="btn-logout" id="logout-student">
+        <svg class="btn-ico"><use href="#ico-logout"/></svg> Выйти
+      </button>
+    </nav>
+    <main class="cabinet-layout">
+      <aside class="sidebar">
+        <div class="sidebar-section-label">Навигация</div>
+        <ul>
+          <li class="sidebar-item active" data-tab="student-profile">
+            <svg class="sidebar-ico"><use href="#ico-user"/></svg> Мои данные
+          </li>
+          <li class="sidebar-item" data-tab="student-docs">
+            <svg class="sidebar-ico"><use href="#ico-doc"/></svg> Документы
+          </li>
+          <li class="sidebar-item" data-tab="student-qr">
+            <svg class="sidebar-ico"><use href="#ico-qr"/></svg> QR и ссылка
+          </li>
+
+        </ul>
+      </aside>
+      <section class="content">
+
+        <div id="student-profile" class="tab active">
+          <div class="page-header">
+            <h2>Мои данные и автосверка с реестром</h2>
+            <p class="page-desc">
+              Укажите данные как в паспорте. При совпадении ФИО, вуза, специальности и номера диплома запись привязывается к аккаунту — подлинность подтверждается автоматически.
+              По желанию укажите <b>ID записи</b> из кабинета вуза (колонка в таблице «Загруженные данные»).
+            </p>
+          </div>
+          <form id="form-student-identity" class="cabinet-form student-identity-form">
+            <div class="form-section-label">Паспорт (ФИО)</div>
+            <label>Фамилия <input type="text" id="student-pass-last" autocomplete="family-name" /></label>
+            <label>Имя <input type="text" id="student-pass-first" autocomplete="given-name" /></label>
+            <label>Отчество <input type="text" id="student-pass-pat" autocomplete="additional-name" /></label>
+            <div class="form-section-label">Диплом (как в реестре / бланке)</div>
+            <label>Номер диплома <input type="text" id="student-identity-diploma-num" autocomplete="off" /></label>
+            <label>ID записи в реестре <small class="inline-hint">необязательно — если вуз сообщил число из таблицы</small>
+              <input type="number" id="student-identity-registry-id" inputmode="numeric" min="1" /></label>
+            <label>Полное название учебного заведения <input type="text" id="student-identity-univ" placeholder="Как в дипломе" /></label>
+            <label>Специальность / профессия <input type="text" id="student-identity-spec" placeholder="Как в дипломе" /></label>
+            <label>Год выпуска <small class="inline-hint">необязательно</small>
+              <input type="text" id="student-identity-year" inputmode="numeric" /></label>
+            <button type="submit" class="btn-primary" id="btn-student-identity-save">Сохранить и сверить с реестром</button>
+          </form>
+          <p id="student-identity-status" class="status-bar hidden" role="status"></p>
+          <div class="info-card" style="margin-top:20px">
+            <div class="info-card-header">Сводка</div>
+            <div class="info-row"><span>Источник</span><strong id="s-source">—</strong></div>
+            <div class="info-row"><span>ID привязанного диплома</span><strong id="s-linked-id">—</strong></div>
+            <div class="info-row"><span>ФИО</span><strong id="s-name">—</strong></div>
+            <div class="info-row"><span>Специальность</span><strong id="s-spec">—</strong></div>
+            <div class="info-row"><span>Год выпуска</span><strong id="s-year">—</strong></div>
+            <div class="info-row"><span>Номер диплома</span><strong id="s-diploma-num">—</strong></div>
+            <div class="info-row"><span>ВУЗ</span><strong id="s-university">—</strong></div>
+            <div class="info-row"><span>Статус в реестре</span><strong id="s-diploma-status">—</strong></div>
+          </div>
+          <button class="btn-secondary" id="btn-load-profile">Обновить сводку</button>
+        </div>
+
+        <div id="student-docs" class="tab">
+          <div class="page-header">
+            <h2>Статус документов</h2>
+            <p class="page-desc">Список документов и их текущий статус обработки</p>
+          </div>
+          <div id="docs-list" class="docs-list">
+            <p class="placeholder-text">Нет загруженных документов</p>
+          </div>
+          <button class="btn-secondary" id="btn-load-docs">Обновить</button>
+        </div>
+
+        <div id="student-qr" class="tab">
+          <div class="page-header">
+            <h2>QR и ссылка на подтверждение</h2>
+            <p class="page-desc">
+              Для <b>подтверждённого</b> диплома создаётся временная ссылка и QR-код. Нажмите «Новый QR», чтобы выдать новую ссылку. Срок действия QR-кода — 24 часа.
+            </p>
+          </div>
+          <div id="student-qr-diploma-wrap" class="hidden" style="max-width:560px;margin-bottom:16px">
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:0.88rem;color:var(--muted)">
+              Диплом
+              <select id="student-qr-diploma" style="padding:10px 14px;border-radius:var(--radius);border:1px solid var(--border);font-size:1rem"></select>
+            </label>
+          </div>
+          <div id="student-qr-hint" class="hint-box" style="max-width:560px;margin-bottom:16px"></div>
+          <div id="student-qr-wrap" class="student-qr-block hidden">
+            <div id="student-qr-host" class="student-qr-host"></div>
+            <label style="display:flex;flex-direction:column;gap:6px;font-size:0.88rem;color:var(--muted);max-width:560px;margin-top:14px">
+              Ссылка для копирования
+              <input type="text" id="student-qr-link" readonly style="padding:10px 14px;border-radius:var(--radius);border:1px solid var(--border);font-size:0.92rem" />
+            </label>
+            <p id="student-qr-meta" class="placeholder-text" style="margin-top:10px;font-size:0.9rem"></p>
+            <div class="student-qr-actions" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:16px">
+              <button type="button" class="btn-secondary" id="btn-student-qr-refresh">Обновить QR</button>
+              <button type="button" class="btn-primary" id="btn-student-qr-new">Новый QR / новая ссылка</button>
+              <button type="button" class="btn-secondary" id="btn-student-qr-copy">Копировать ссылку</button>
+              <button type="button" class="btn-ghost" id="btn-student-qr-share">Поделиться…</button>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <!-- UNIVERSITY CABINET -->
+  <div id="screen-university" class="screen">
+    <nav class="navbar">
+      <span class="nav-logo">Diploma<span>Verify</span></span>
+      <div class="nav-divider"></div>
+      <span class="nav-role">Кабинет ВУЗа</span>
+      <button class="btn-logout" id="logout-university">
+        <svg class="btn-ico"><use href="#ico-logout"/></svg> Выйти
+      </button>
+    </nav>
+    <main class="cabinet-layout">
+      <aside class="sidebar">
+        <div class="sidebar-section-label">Навигация</div>
+        <ul>
+          <li class="sidebar-item active" data-tab="uni-upload">
+            <svg class="sidebar-ico"><use href="#ico-cloud-up"/></svg> Загрузка Excel
+          </li>
+          <li class="sidebar-item" data-tab="uni-records">
+            <svg class="sidebar-ico"><use href="#ico-db"/></svg> Загруженные данные
+          </li>
+          <li class="sidebar-item" data-tab="uni-queue">
+            <svg class="sidebar-ico"><use href="#ico-gear"/></svg> Статус обработки
+          </li>
+        </ul>
+      </aside>
+      <section class="content">
+
+        <div id="uni-upload" class="tab active">
+          <div class="page-header">
+            <h2>Загрузка Excel / CSV</h2>
+            <p class="page-desc">Загрузите файл с данными выпускников для массовой обработки</p>
+          </div>
+          <div class="dropzone" id="dropzone">
+            <svg class="drop-icon"><use href="#ico-cloud-up"/></svg>
+            <p>Перетащите файл сюда или нажмите кнопку ниже</p>
+            <label class="btn-secondary file-label">
+              Выбрать файл
+              <input type="file" id="file-input" accept=".xlsx,.xls,.csv" hidden />
+            </label>
+            <p class="file-hint">Поддерживаются форматы .xlsx, .xls, .csv — максимум 50 МБ</p>
+          </div>
+          <div id="upload-preview" class="upload-preview hidden">
+            <svg class="btn-ico" style="color:var(--primary)"><use href="#ico-doc"/></svg>
+            <span id="upload-filename"></span>
+            <button class="btn-primary" id="btn-upload-send">Отправить на сервер</button>
+            <button class="btn-ghost" id="btn-upload-cancel">Отмена</button>
+          </div>
+          <div id="upload-status" class="status-bar hidden"></div>
+        </div>
+
+        <div id="uni-records" class="tab">
+          <div class="page-header">
+            <h2>Загруженные данные</h2>
+            <p class="page-desc">Реестр записей. Колонку <b>"ID"</b> можно сообщить выпускнику для привязки в кабинете студента.</p>
+          </div>
+          <div class="table-toolbar">
+            <input type="text" id="records-search" placeholder="Поиск по ФИО или номеру диплома..." />
+            <button class="btn-secondary" id="btn-load-records">Обновить</button>
+          </div>
+          <div class="table-wrap">
+            <table id="records-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>ФИО</th>
+                  <th>Специальность</th>
+                  <th>Год</th>
+                  <th>Номер диплома</th>
+                  <th>Статус</th>
+                </tr>
+              </thead>
+              <tbody id="records-tbody">
+                <tr><td colspan="6" class="placeholder-text">Нет данных</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="uni-queue" class="tab">
+          <div class="page-header">
+            <h2>Статус обработки</h2>
+            <p class="page-desc">Очередь задач и прогресс обработки загруженных файлов</p>
+          </div>
+          <button class="btn-secondary" id="btn-load-queue">Обновить</button>
+          <div id="queue-list" class="queue-list">
+            <p class="placeholder-text">Нет активных задач</p>
+          </div>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <!-- EMPLOYER CABINET -->
+  <div id="screen-employer" class="screen">
+    <nav class="navbar">
+      <span class="nav-logo">Diploma<span>Verify</span></span>
+      <div class="nav-divider"></div>
+      <span class="nav-role">Кабинет работодателя</span>
+      <button class="btn-logout" id="logout-employer">
+        <svg class="btn-ico"><use href="#ico-logout"/></svg> Выйти
+      </button>
+    </nav>
+    <main class="cabinet-layout">
+      <aside class="sidebar">
+        <div class="sidebar-section-label">Навигация</div>
+        <ul>
+          <li class="sidebar-item active" data-tab="emp-check">
+            <svg class="sidebar-ico"><use href="#ico-mag"/></svg> Проверка кандидата
+          </li>
+          <li class="sidebar-item" data-tab="emp-history">
+            <svg class="sidebar-ico"><use href="#ico-list"/></svg> История проверок
+          </li>
+        </ul>
+      </aside>
+      <section class="content">
+
+        <div id="emp-check" class="tab active">
+          <div class="page-header">
+            <h2>Проверка кандидата</h2>
+            <p class="page-desc">Проверьте подлинность диплома по ID или QR-коду</p>
+          </div>
+          <div class="check-methods">
+            <div class="check-card">
+              <h3>По ID диплома</h3>
+              <input type="text" id="emp-diploma-id" placeholder="Введите ID диплома" />
+              <button class="btn-primary" id="btn-check-id">Проверить</button>
+            </div>
+            <div class="check-divider">или</div>
+            <div class="check-card">
+              <h3>По QR-коду</h3>
+              <div class="qr-area" id="qr-area">
+                <svg class="qr-ico"><use href="#ico-qr"/></svg>
+                <p>Наведите камеру на QR-код диплома</p>
+                <button class="btn-secondary" id="btn-scan-qr">Открыть камеру</button>
+              </div>
+            </div>
+          </div>
+          <div id="emp-result" class="verify-result hidden"></div>
+        </div>
+
+        <div id="emp-history" class="tab">
+          <div class="page-header">
+            <h2>История проверок</h2>
+            <p class="page-desc">Журнал всех выполненных проверок дипломов</p>
+          </div>
+          <button class="btn-secondary" id="btn-load-history" style="margin-bottom:16px">Обновить</button>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Дата</th>
+                  <th>ID диплома</th>
+                  <th>ФИО</th>
+                  <th>Результат</th>
+                </tr>
+              </thead>
+              <tbody id="history-tbody">
+                <tr><td colspan="4" class="placeholder-text">Нет истории</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <!-- ADMIN CABINET -->
+  <div id="screen-admin" class="screen">
+    <nav class="navbar">
+      <span class="nav-logo">Diploma<span>Verify</span></span>
+      <div class="nav-divider"></div>
+      <span class="nav-role">Панель администратора</span>
+      <button class="btn-logout" id="logout-admin">
+        <svg class="btn-ico"><use href="#ico-logout"/></svg> Выйти
+      </button>
+    </nav>
+    <main class="cabinet-layout">
+      <aside class="sidebar">
+        <div class="sidebar-section-label">Навигация</div>
+        <ul>
+          <li class="sidebar-item active" data-tab="admin-applications">
+            <svg class="sidebar-ico"><use href="#ico-building"/></svg> Заявки ВУЗов
+          </li>
+        </ul>
+      </aside>
+      <section class="content">
+
+        <div id="admin-applications" class="tab active">
+          <div class="page-header">
+            <h2>Заявки на регистрацию ВУЗов</h2>
+            <p class="page-desc">Рассмотрите заявки и подтвердите или отклоните регистрацию</p>
+          </div>
+          <div style="display:flex;gap:10px;margin-bottom:20px">
+            <button class="btn-secondary" id="btn-load-applications">Обновить</button>
+            <select id="app-status-filter" style="padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:0.95rem;color:var(--text);background:var(--surface)">
+              <option value="pending">Ожидают рассмотрения</option>
+              <option value="all">Все заявки</option>
+            </select>
+          </div>
+          <div id="applications-list" class="queue-list" style="max-width:860px">
+            <p class="placeholder-text">Нет заявок</p>
+          </div>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <!-- APP DETAIL MODAL -->
+  <div id="app-detail-modal" class="modal-overlay hidden">
+    <div class="modal-panel" style="max-width:560px;max-height:90vh;overflow-y:auto">
+      <button class="modal-close" onclick="document.getElementById('app-detail-modal').classList.add('hidden')">✕</button>
+      <h2 class="auth-panel-title" style="margin-bottom:20px">Детали заявки</h2>
+      <div id="app-detail-body"></div>
+    </div>
+  </div>
+
+  <script src="diplom.js"></script>
+</body>
+</html>
