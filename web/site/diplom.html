@@ -311,12 +311,12 @@
               <input type="text" id="uni-apply-org" required placeholder="Полное наименование ВУЗа" />
             </div>
             <div class="form-group">
-              <label class="form-label">Контактные данные</label>
-              <input type="text" required id="uni-apply-notes" placeholder="Реквизиты, контакты…" />
+              <label class="form-label">Комментарий (необязательно)</label>
+              <input type="text" id="uni-apply-notes" placeholder="Реквизиты, контакты…" />
             </div>
             <div class="form-group">
               <label class="form-label">Документы (обязательно, до 8 файлов)</label>
-              <input type="file" id="uni-apply-docs" required multiple accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" style="font-size:0.9rem" />
+              <input type="file" id="uni-apply-docs" multiple accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" style="font-size:0.9rem" />
             </div>
             <p class="auth-mode-links" style="margin-top:20px">
               <a href="#" id="link-show-login-uni" class="auth-link">Вход</a>
@@ -361,6 +361,9 @@
           <li class="sidebar-item" data-tab="student-qr">
             <svg class="sidebar-ico"><use href="#ico-qr"/></svg> QR и ссылка
           </li>
+          <li class="sidebar-item" data-tab="student-verify">
+            <svg class="sidebar-ico"><use href="#ico-mag"/></svg> Проверка диплома
+          </li>
         </ul>
       </aside>
       <section class="content">
@@ -369,7 +372,7 @@
           <div class="page-header">
             <h2>Мои данные и автосверка с реестром</h2>
             <p class="page-desc">
-              Укажите данные как в паспорте. При совпадении ФИО, вуза, специальности и номера диплома запись привязывается к аккаунту - подлинность подтверждается автоматически.
+              Укажите данные как в паспорте и как в реестре вуза (после загрузки Excel). При совпадении ФИО, вуза, специальности и номера диплома запись привязывается к аккаунту - подлинность подтверждается автоматически.
               По желанию укажите <b>ID записи</b> из кабинета вуза (колонка в таблице «Загруженные данные»).
             </p>
           </div>
@@ -381,11 +384,11 @@
             <div class="form-section-label">Диплом (как в реестре / бланке)</div>
             <label>Номер диплома <input type="text" id="student-identity-diploma-num" autocomplete="off" /></label>
             <label>ID записи в реестре <small class="inline-hint">необязательно - если вуз сообщил число из таблицы</small>
-              <input type="number" id="student-identity-registry-id" inputmode="numeric" min="1" /></label>
-            <label>Полное название учебного заведения <input type="text" id="student-identity-univ" placeholder="Как в дипломе" /></label>
-            <label>Специальность / профессия <input type="text" id="student-identity-spec" placeholder="Как в дипломе" /></label>
+              <input type="number" id="student-identity-registry-id" inputmode="numeric" min="1" placeholder="например 42" /></label>
+            <label>Полное название учебного заведения <input type="text" id="student-identity-univ" placeholder="Как в Excel вуза" /></label>
+            <label>Специальность / профессия <input type="text" id="student-identity-spec" placeholder="Как в колонке специальности в Excel" /></label>
             <label>Год выпуска <small class="inline-hint">необязательно</small>
-              <input type="text" id="student-identity-year" inputmode="numeric" /></label>
+              <input type="text" id="student-identity-year" placeholder="2024" inputmode="numeric" /></label>
             <button type="submit" class="btn-primary" id="btn-student-identity-save">Сохранить и сверить с реестром</button>
           </form>
           <p id="student-identity-status" class="status-bar hidden" role="status"></p>
@@ -444,6 +447,18 @@
               <button type="button" class="btn-ghost" id="btn-student-qr-share">Поделиться…</button>
             </div>
           </div>
+        </div>
+
+        <div id="student-verify" class="tab">
+          <div class="page-header">
+            <h2>Проверка диплома</h2>
+            <p class="page-desc">Введите ID диплома или токен для проверки подлинности</p>
+          </div>
+          <div class="verify-box">
+            <input type="text" id="s-verify-id" placeholder="Введите ID диплома или токен" />
+            <button class="btn-primary" id="btn-student-verify">Проверить</button>
+          </div>
+          <div id="s-verify-result" class="verify-result hidden"></div>
         </div>
 
       </section>
@@ -526,7 +541,7 @@
         <div id="uni-records" class="tab">
           <div class="page-header">
             <h2>Загруженные данные</h2>
-            <p class="page-desc">Реестр записей. Колонку <b>"ID"</b> можно сообщить выпускнику для привязки в кабинете студента.</p>
+            <p class="page-desc">Реестр записей. Колонка <b>ID</b> можно сообщить выпускнику для привязки в кабинете студента.</p>
           </div>
           <div class="table-toolbar">
             <input type="text" id="records-search" placeholder="Поиск по ФИО или номеру диплома..." />
