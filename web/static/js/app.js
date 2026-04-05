@@ -6,12 +6,15 @@
 const API_BASE = (document.body.getAttribute('data-api-base') || '/api/v1').replace(/\/$/, '');
 const LS_TOKEN = 'token';
 const LS_REFRESH = 'refresh_token';
+const LS_SCREEN = 'active_screen';
+const LS_TAB = 'active_tab';
 const MAX_UPLOAD_BYTES = 32 * 1024 * 1024;
 
 let currentRole = 'student';
 let authToken = localStorage.getItem(LS_TOKEN) || null;
 let authRegisterMode = false;
 let activeJobWs = null;
+let notifyWs = null;
 let qrAnimFrame = null;
 let qrStream = null;
 
@@ -40,7 +43,6 @@ function escapeHtml(s) {
   return d.innerHTML;
 }
 
-/** Из полного URL вида .../api/v1/verify/XXXX или из сырой строки — идентификатор для API. */
 function extractVerifyId(raw) {
   const s = String(raw || '').trim();
   if (!s) return '';
@@ -58,11 +60,12 @@ function yearCell(y) {
   return y != null && y !== '' && Number(y) !== 0 ? escapeHtml(y) : '—';
 }
 
-// ─── Экраны / табы ────────────────────────────────────────────────────────────
+// ─── Экраны / табы + сохранение состояния ────────────────────────────────────
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
   const el = document.getElementById('screen-' + id);
   if (el) el.classList.add('active');
+  if (id !== 'auth') localStorage.setItem(LS_SCREEN, id);
 }
 
 function showTab(tabId) {
@@ -73,9 +76,17 @@ function showTab(tabId) {
   const tab = document.getElementById(tabId);
   if (tab) tab.classList.add('active');
   screen.querySelector(`[data-tab="${tabId}"]`)?.classList.add('active');
+  localStorage.setItem(LS_TAB, tabId);
 }
 
 window.showScreen = showScreen;
+
+function restoreTab() {
+  const savedTab = localStorage.getItem(LS_TAB);
+  if (savedTab && document.getElementById(savedTab)) {
+    showTab(savedTab);
+  }
+}
 
 function badge(status) {
   const map = {
@@ -114,7 +125,6 @@ async function apiFetch(path, options = {}) {
   return res.text();
 }
 
-/** Публичная проверка — без Authorization (гости и лендинг). */
 async function verifyPublicById(rawId) {
   const id = extractVerifyId(rawId);
   if (!id) throw new Error('Пустой идентификатор');
@@ -130,7 +140,6 @@ async function verifyPublicById(rawId) {
   return res.json();
 }
 
-/** Проверка из кабинета: с токеном (работодатель — запись в историю на бэке). */
 async function verifyWithSession(rawId) {
   const id = extractVerifyId(rawId);
   if (!id) throw new Error('Пустой идентификатор');
@@ -146,17 +155,91 @@ function renderVerifyOk(data) {
   return `✅ Диплом действителен<br><small>${name} · ${uni} · ${year}</small>${extra}`;
 }
 
+// ─── WebSocket уведомления ────────────────────────────────────────────────────
+function startNotifyWs() {
+  if (notifyWs) return;
+  if (!authToken) return;
+  const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const url = `${proto}//${window.location.host}${API_BASE}/ws/notify?access_token=${encodeURIComponent(authToken)}`;
+  const ws = new WebSocket(url);
+  notifyWs = ws;
+
+  ws.onmessage = (ev) => {
+    try {
+      const msg = JSON.parse(ev.data);
+      handleNotify(msg);
+    } catch { /* ignore */ }
+  };
+
+  ws.onclose = () => {
+    notifyWs = null;
+    // Переподключаемся через 3 секунды если ещё авторизованы
+    if (authToken) setTimeout(startNotifyWs, 3000);
+  };
+
+  ws.onerror = () => ws.close();
+}
+
+function stopNotifyWs() {
+  if (notifyWs) {
+    try { notifyWs.close(); } catch { /* ignore */ }
+    notifyWs = null;
+  }
+}
+
+function handleNotify(msg) {
+  if (!msg || !msg.type) return;
+  switch (msg.type) {
+    case 'job_done':
+      // Обновляем очередь и записи у ВУЗа
+      loadQueue().catch(() => {});
+      loadRecords().catch(() => {});
+      break;
+    case 'reload':
+      // Перезагружаем данные текущего экрана
+      refreshCurrentScreen();
+      break;
+    case 'app_approved':
+    case 'app_rejected':
+      refreshCurrentScreen();
+      break;
+  }
+}
+
+function refreshCurrentScreen() {
+  const screen = document.querySelector('.screen.active');
+  if (!screen) return;
+  const id = screen.id.replace('screen-', '');
+  if (id === 'university') {
+    loadRecords().catch(() => {});
+    loadQueue().catch(() => {});
+  } else if (id === 'student') {
+    loadStudentProfile().catch(() => {});
+  } else if (id === 'employer') {
+    loadHistory().catch(() => {});
+  }
+}
+
 // ─── Сессия ─────────────────────────────────────────────────────────────────
 async function tryRestoreSession() {
   if (!authToken) return false;
   try {
     const me = await apiFetch('/users/me');
     const uiRole = backendRoleToUI(me.role) || 'student';
-    syncRoleTabs(uiRole);
-    showScreen(uiRole);
-    if (uiRole === 'student') await loadStudentProfile().catch(() => {});
-    if (uiRole === 'university') await loadRecords().catch(() => {});
-    if (uiRole === 'employer') await loadHistory().catch(() => {});
+    // Для admin используем экран university
+    const screenRole = uiRole === 'admin' ? 'university' : uiRole;
+    syncRoleTabs(screenRole);
+    showScreen(screenRole);
+
+    if (screenRole === 'student') await loadStudentProfile().catch(() => {});
+    if (screenRole === 'university') await loadRecords().catch(() => {});
+    if (screenRole === 'employer') await loadHistory().catch(() => {});
+
+    // Восстанавливаем активный таб
+    restoreTab();
+
+    // Запускаем WS уведомления
+    startNotifyWs();
     return true;
   } catch {
     logout();
@@ -166,9 +249,12 @@ async function tryRestoreSession() {
 
 function logout() {
   stopJobWatch();
+  stopNotifyWs();
   authToken = null;
   localStorage.removeItem(LS_TOKEN);
   localStorage.removeItem(LS_REFRESH);
+  localStorage.removeItem(LS_SCREEN);
+  localStorage.removeItem(LS_TAB);
   showScreen('auth');
 }
 
@@ -217,11 +303,14 @@ function enterCabinetAfterAuth(data) {
   localStorage.setItem(LS_TOKEN, authToken);
   if (data.refresh_token) localStorage.setItem(LS_REFRESH, data.refresh_token);
   const uiRole = backendRoleToUI(data.role) || currentRole;
-  syncRoleTabs(uiRole);
-  showScreen(uiRole);
-  if (uiRole === 'student') loadStudentProfile();
-  if (uiRole === 'university') loadRecords();
-  if (uiRole === 'employer') loadHistory();
+  // Для admin используем экран university (управление системой)
+  const screenRole = uiRole === 'admin' ? 'university' : uiRole;
+  syncRoleTabs(screenRole);
+  showScreen(screenRole);
+  if (screenRole === 'student') loadStudentProfile();
+  if (screenRole === 'university') loadRecords();
+  if (screenRole === 'employer') loadHistory();
+  startNotifyWs();
 }
 
 document.getElementById('auth-form').addEventListener('submit', async (e) => {
@@ -368,9 +457,7 @@ document.getElementById('btn-student-verify').addEventListener('click', async ()
 // ─── ВУЗ: загрузка + WebSocket статуса ───────────────────────────────────────
 function stopJobWatch() {
   if (activeJobWs) {
-    try {
-      activeJobWs.close();
-    } catch { /* ignore */ }
+    try { activeJobWs.close(); } catch { /* ignore */ }
     activeJobWs = null;
   }
 }
@@ -552,9 +639,12 @@ document.getElementById('btn-load-queue').addEventListener('click', loadQueue);
 
 document.getElementById('records-search').addEventListener('input', function () {
   const q = this.value.toLowerCase();
-  document.querySelectorAll('#records-tbody tr').forEach((row) => {
-    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
-  });
+  clearTimeout(this._searchTimeout);
+  this._searchTimeout = setTimeout(() => {
+    document.querySelectorAll('#records-tbody tr').forEach((row) => {
+      row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  }, 300);
 });
 
 // ─── Отчёт по job (модалка) ──────────────────────────────────────────────────

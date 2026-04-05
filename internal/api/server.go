@@ -45,6 +45,7 @@ func NewServer(cfg *config.Config, db *database.DB, rdb *redis.Client, kp *kafka
 
 	s.router.Use(gin.Recovery())
 	s.router.Use(middleware.Logger(log))
+	s.router.Use(middleware.SecurityHeaders())
 	s.router.Use(middleware.CORS())
 	s.router.Use(middleware.RateLimiter(rdb))
 	s.router.MaxMultipartMemory = 32 << 20 // 32 MB макс размер загружаемого файла
@@ -54,14 +55,22 @@ func NewServer(cfg *config.Config, db *database.DB, rdb *redis.Client, kp *kafka
 }
 
 func (s *Server) setupRoutes() {
-	// Основной UI — те же пути, что в fronted/ (относительные diplom.css / diplom.js)
+	// Статика
 	s.router.StaticFile("/diplom.css", "./web/site/diplom.css")
 	s.router.StaticFile("/diplom.js", "./web/site/diplom.js")
 	s.router.Static("/site", "./web/site")
-	s.router.StaticFile("/", "./web/site/diplom.html")
 	s.router.StaticFile("/favicon.ico", "./web/site/favicon.ico")
-	// Старая витрина (при необходимости): /static/...
 	s.router.Static("/static", "./web/static")
+
+	// SPA-роуты — все отдают один и тот же HTML, JS сам разберётся по pathname
+	spaHandler := func(c *gin.Context) {
+		c.File("./web/site/diplom.html")
+	}
+	s.router.GET("/", spaHandler)
+	s.router.GET("/student", spaHandler)
+	s.router.GET("/university", spaHandler)
+	s.router.GET("/employer", spaHandler)
+	s.router.GET("/admin", spaHandler)
 
 	authHandler := handlers.NewAuthHandler(s.db, s.config.JWTSecret, s.log)
 	userHandler := handlers.NewUserHandler(s.db, s.redis, s.log)
@@ -70,6 +79,7 @@ func (s *Server) setupRoutes() {
 	batchHandler := handlers.NewBatchHandler(s.db, s.redis, s.log)
 	wsHandler := handlers.NewWSHandler(s.db, s.redis, s.log)
 	uniAppHandler := handlers.NewUniversityApplicationHandler(s.db, s.log)
+	statsHandler := handlers.NewStatsHandler(s.db, s.log)
 
 	s.router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
@@ -109,11 +119,14 @@ func (s *Server) setupRoutes() {
 			protected.POST("/university/upload", diplomaHandler.UploadFile)
 			protected.POST("/university/diplomas", diplomaHandler.UniversityManualCreate)
 			protected.GET("/university/records", diplomaHandler.GetUniversityRecords)
+			protected.GET("/university/records/export", statsHandler.ExportUniversityRecords)
+			protected.GET("/university/stats", statsHandler.UniversityStats)
 			protected.GET("/university/pending", diplomaHandler.GetUniversityPendingClaims)
 			protected.GET("/university/queue", diplomaHandler.GetProcessingQueue)
 			
 			// Employer endpoints
 			protected.GET("/employer/history", diplomaHandler.GetEmployerHistory)
+			protected.GET("/employer/history/export", statsHandler.ExportEmployerHistory)
 			
 			// Diploma endpoints
 			protected.POST("/diplomas", diplomaHandler.Create)
@@ -134,9 +147,17 @@ func (s *Server) setupRoutes() {
 			protected.POST("/admin/university-applications/:id/approve", uniAppHandler.Approve)
 			protected.POST("/admin/university-applications/:id/reject", uniAppHandler.Reject)
 			protected.GET("/admin/university-applications/:id/file", uniAppHandler.DownloadFile)
+			
+			// Admin — управление ВУЗами
+			protected.GET("/admin/universities", userHandler.ListAllUniversities)
+			protected.DELETE("/admin/universities/:id", userHandler.DeleteUniversity)
+
+			// Admin — статистика
+			protected.GET("/admin/stats", statsHandler.AdminStats)
 
 			// WebSocket
 			protected.GET("/ws/jobs/:id", wsHandler.JobStatus)
+			protected.GET("/ws/notify", wsHandler.Notify)
 		}
 	}
 }

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"diasoft-diploma-api/internal/api"
+	"diasoft-diploma-api/internal/api/handlers"
 	"diasoft-diploma-api/internal/config"
 	"diasoft-diploma-api/internal/database"
 	"diasoft-diploma-api/internal/kafka"
@@ -22,14 +23,20 @@ func main() {
 
 	cfg := config.Load()
 
+	if cfg.JWTSecret == "" {
+		log.Fatal("JWT_SECRET is required")
+	}
+
 	db, err := database.Connect(ctx, cfg.DatabaseURL)
 	if err != nil {
 		log.Fatal("Failed to connect to database", "error", err)
 	}
 	defer db.Close()
 
-	if err := database.EnsureAdmin(ctx, db, cfg.AdminEmail, cfg.AdminPassword, log); err != nil {
-		log.Error("EnsureAdmin failed", "error", err)
+	if cfg.AdminEmail != "" && cfg.AdminPassword != "" {
+		if err := database.EnsureAdmin(ctx, db, cfg.AdminEmail, cfg.AdminPassword, log); err != nil {
+			log.Error("EnsureAdmin failed", "error", err)
+		}
 	}
 
 	rdb := redis.Connect(cfg.RedisURL)
@@ -38,20 +45,25 @@ func main() {
 	kafkaProducer := kafka.NewProducer(cfg.KafkaBrokers, log)
 	defer kafkaProducer.Close()
 
-	// Start worker for file processing
-	worker := worker.NewWorker(db, kafkaProducer, log)
-	worker.Start(ctx)
+	w := worker.NewWorker(db, kafkaProducer, log)
+	w.OnJobDone = func(userID int64, jobID string, status string) {
+		handlers.GlobalHub.SendToUser(userID, handlers.NotifyMessage{
+			Type:    "job_done",
+			Payload: map[string]string{"job_id": jobID, "status": status},
+		})
+	}
+	w.Start(ctx)
 
 	kafkaConsumer := kafka.NewConsumer(cfg.KafkaBrokers, cfg.KafkaGroup, log)
-	kafkaConsumer.SetEnqueuer(worker)
+	kafkaConsumer.SetEnqueuer(w)
 	go kafkaConsumer.Start(ctx, db)
 
-	server := api.NewServer(cfg, db, rdb, kafkaProducer, worker, log)
+	server := api.NewServer(cfg, db, rdb, kafkaProducer, w, log)
 
 	go func() {
 		log.Info("Starting server", "address", cfg.ServerAddress)
 		if err := server.Run(cfg.ServerAddress); err != nil {
-			log.Fatal("Failed to start server", "error", err)
+			log.Fatal("Server error", "error", err)
 		}
 	}()
 
@@ -59,13 +71,11 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	log.Info("Shutting down server...")
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	log.Info("Shutting down...")
+	shutCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if err := server.Shutdown(ctx); err != nil {
-		log.Error("Server forced to shutdown", "error", err)
+	if err := server.Shutdown(shutCtx); err != nil {
+		log.Error("Shutdown error", "error", err)
 	}
-
-	log.Info("Server exited")
 }

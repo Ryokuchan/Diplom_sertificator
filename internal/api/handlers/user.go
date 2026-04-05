@@ -208,3 +208,76 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Profile updated"})
 }
+
+// ListAllUniversities — список всех ВУЗов для админа
+// GET /api/v1/admin/universities
+func (h *UserHandler) ListAllUniversities(c *gin.Context) {
+	if c.GetString("role") != "admin" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Только администратор"})
+		return
+	}
+	ctx := c.Request.Context()
+	rows, err := h.db.Query(ctx,
+		`SELECT id, email, role, created_at FROM users WHERE role = 'university' ORDER BY created_at DESC LIMIT 500`,
+	)
+	if err != nil {
+		h.log.Error("ListAllUniversities failed", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось загрузить список"})
+		return
+	}
+	defer rows.Close()
+
+	out := []gin.H{}
+	for rows.Next() {
+		var id int64
+		var email, role string
+		var createdAt time.Time
+		if err := rows.Scan(&id, &email, &role, &createdAt); err != nil {
+			continue
+		}
+		out = append(out, gin.H{
+			"id":         id,
+			"email":      email,
+			"role":       role,
+			"created_at": createdAt.Format(time.RFC3339),
+		})
+	}
+	if err := rows.Err(); err != nil {
+		h.log.Error("ListAllUniversities rows", "error", err)
+	}
+
+	c.JSON(http.StatusOK, out)
+}
+
+// DeleteUniversity — удаление ВУЗа админом
+// DELETE /api/v1/admin/universities/:id
+func (h *UserHandler) DeleteUniversity(c *gin.Context) {
+	if c.GetString("role") != "admin" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Только администратор"})
+		return
+	}
+	ctx := c.Request.Context()
+	uniID := c.Param("id")
+
+	// Проверяем что это действительно ВУЗ
+	var role string
+	err := h.db.QueryRow(ctx, `SELECT role FROM users WHERE id = $1`, uniID).Scan(&role)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "ВУЗ не найден"})
+		return
+	}
+	if role != "university" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Это не учётная запись ВУЗа"})
+		return
+	}
+
+	// Удаляем все связанные данные (каскадное удаление настроено в БД)
+	_, err = h.db.Exec(ctx, `DELETE FROM users WHERE id = $1`, uniID)
+	if err != nil {
+		h.log.Error("Failed to delete university", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось удалить ВУЗ"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "ВУЗ удалён"})
+}

@@ -617,11 +617,35 @@ func (h *DiplomaHandler) GetUniversityRecords(c *gin.Context) {
 	ctx := c.Request.Context()
 	userID := c.GetInt64("user_id")
 
+	// Парсим параметры пагинации
+	page := 1
+	if p, err := strconv.Atoi(c.DefaultQuery("page", "1")); err == nil && p > 0 {
+		page = p
+	}
+	limit := 25
+	if l, err := strconv.Atoi(c.DefaultQuery("limit", "25")); err == nil {
+		switch l {
+		case 10, 25, 50:
+			limit = l
+		}
+	}
+	offset := (page - 1) * limit
+
+	// Общее количество записей
+	var total int
+	if err := h.db.QueryRow(ctx,
+		`SELECT COUNT(*) FROM diplomas WHERE university_id = $1`, userID,
+	).Scan(&total); err != nil {
+		h.log.Error("Failed to count university records", "error", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch records"})
+		return
+	}
+
 	rows, err := h.db.Query(ctx,
 		`SELECT d.id, d.diploma_number, d.status, d.metadata, d.created_at
 		FROM diplomas d WHERE d.university_id = $1
-		ORDER BY d.created_at DESC LIMIT 100`,
-		userID,
+		ORDER BY d.created_at DESC LIMIT $2 OFFSET $3`,
+		userID, limit, offset,
 	)
 	if err != nil {
 		h.log.Error("Failed to fetch university records", "error", err)
@@ -662,7 +686,12 @@ func (h *DiplomaHandler) GetUniversityRecords(c *gin.Context) {
 		h.log.Error("Row iteration error in GetUniversityRecords", "error", err)
 	}
 
-	c.JSON(http.StatusOK, records)
+	c.JSON(http.StatusOK, gin.H{
+		"data":  records,
+		"page":  page,
+		"limit": limit,
+		"total": total,
+	})
 }
 
 func (h *DiplomaHandler) GetProcessingQueue(c *gin.Context) {

@@ -166,6 +166,11 @@ func sanitizeStoredName(name string) string {
 	return base
 }
 
+func mustParseID(s string) int64 {
+	n, _ := strconv.ParseInt(s, 10, 64)
+	return n
+}
+
 func (h *UniversityApplicationHandler) cleanupAppDir(appID int64) {
 	_ = os.RemoveAll(filepath.Join("data", "uni-apps", fmt.Sprintf("%d", appID)))
 }
@@ -289,6 +294,9 @@ func (h *UniversityApplicationHandler) Approve(c *gin.Context) {
 		return
 	}
 
+	// Уведомляем всех подключённых пользователей (в т.ч. нового ВУЗа, если он уже открыл страницу)
+	BroadcastReload("app_approved")
+
 	c.JSON(http.StatusOK, gin.H{"message": "ВУЗ зарегистрирован", "user_id": newUserID, "email": email})
 }
 
@@ -327,6 +335,10 @@ func (h *UniversityApplicationHandler) Reject(c *gin.Context) {
 		return
 	}
 
+	// Удаляем загруженные документы с диска
+	h.cleanupAppDir(mustParseID(id))
+
+	BroadcastReload("app_rejected")
 	c.JSON(http.StatusOK, gin.H{"message": "Заявка отклонена"})
 }
 

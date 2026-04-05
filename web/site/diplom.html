@@ -2,11 +2,11 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
   <title>DiplomaVerify — Система верификации дипломов</title>
   <link rel="stylesheet" href="diplom.css" />
 </head>
-<body>
+<body data-api-base="/api/v1">
 
   <!-- SVG SPRITE -->
   <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
@@ -223,9 +223,9 @@
         </div>
         <div class="lf-body">
           <div class="lf-title">Криптографическая защита</div>
-          <div class="lf-desc">Каждый диплом получает уникальный хеш, хранящийся в защищённой базе данных. Подделка исключена — любое изменение документа мгновенно обнаруживается при проверке.</div>
+          <div class="lf-desc">Каждый диплом получает уникальный хеш, хранящийся в защищённой базе данных. Подделка исключена - любое изменение документа мгновенно обнаруживается при проверке.</div>
           <div class="lf-hint">Нажмите для подробностей</div>
-          <div class="lf-extra">Алгоритм SHA-256 генерирует цифровой отпечаток каждого документа. Хеш привязан к метаданным: ФИО, специальность, год выпуска, ВУЗ. Даже изменение одного символа даёт полностью другой хеш — система мгновенно фиксирует несоответствие и помечает диплом как недействительный.</div>
+          <div class="lf-extra">Алгоритм SHA-256 генерирует цифровой отпечаток каждого документа. Хеш привязан к метаданным: ФИО, специальность, год выпуска, ВУЗ. Даже изменение одного символа даёт полностью другой хеш - система мгновенно фиксирует несоответствие и помечает диплом как недействительный.</div>
         </div>
         <div class="lf-accent" style="--accent:#3b82f6"></div>
       </div>
@@ -239,7 +239,7 @@
           <div class="lf-title">Массовая загрузка через Excel и CSV</div>
           <div class="lf-desc">ВУЗы загружают данные выпускников одним файлом. Система автоматически валидирует, нормализует и ставит записи в очередь обработки — без ручного ввода.</div>
           <div class="lf-hint">Нажмите для подробностей</div>
-          <div class="lf-extra">Поддерживаются форматы .xlsx, .xls и .csv до 50 МБ. После загрузки файл проходит валидацию структуры, нормализацию данных и попадает в очередь Redis/Kafka. Прогресс обработки отображается в реальном времени — ВУЗ видит статус каждой записи.</div>
+          <div class="lf-extra">Поддерживаются форматы .xlsx, .xls и .csv до 50 МБ. После загрузки файл проходит валидацию структуры, нормализацию данных и попадает в очередь Redis/Kafka. Прогресс обработки отображается в реальном времени - ВУЗ видит статус каждой записи.</div>
         </div>
         <div class="lf-accent" style="--accent:#3b82f6"></div>
       </div>
@@ -251,7 +251,7 @@
         </div>
         <div class="lf-body">
           <div class="lf-title">Мгновенная проверка по QR или ID</div>
-          <div class="lf-desc">Работодатель сканирует QR-код на дипломе или вводит ID — и за секунды получает подтверждение подлинности. Никаких звонков в ВУЗ, никаких задержек.</div>
+          <div class="lf-desc">Работодатель сканирует QR-код на дипломе или вводит ID - и за секунды получает подтверждение подлинности. Никаких звонков в ВУЗ, никаких задержек.</div>
           <div class="lf-hint">Нажмите для подробностей</div>
           <div class="lf-extra">QR-код содержит зашифрованный токен, привязанный к записи в базе. При сканировании система сверяет токен с хешем и возвращает результат: имя, специальность, ВУЗ, год выпуска и статус документа. Вся проверка занимает менее одной секунды.</div>
         </div>
@@ -312,31 +312,22 @@
             </div>
             <div class="form-group">
               <label class="form-label">Контактные данные</label>
-              <input type="text" id="uni-apply-notes" required placeholder="Реквизиты, контакты…" />
+              <input type="text" required id="uni-apply-notes" placeholder="Реквизиты, контакты…" />
             </div>
             <div class="form-group">
               <label class="form-label">Документы (обязательно, до 8 файлов)</label>
               <input type="file" id="uni-apply-docs" required multiple accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" style="font-size:0.9rem" />
             </div>
+            <p class="auth-mode-links" style="margin-top:20px">
+              <a href="#" id="link-show-login-uni" class="auth-link">Вход</a>
+              <span class="auth-mode-sep" aria-hidden="true">·</span>
+              <a href="#" class="auth-link auth-link-active">Регистрация</a>
+            </p>
             <button type="submit" class="btn-primary" style="width:100%;margin-top:4px">Отправить заявку</button>
           </form>
           <p id="uni-apply-status" class="status-bar hidden" style="margin-top:12px"></p>
         </div>
 
-        <div class="dev-shortcuts">
-          <p>Быстрый переход (dev)</p>
-          <div class="dev-btns">
-            <button onclick="showScreen('student')" class="btn-ghost">
-              <svg class="btn-ico"><use href="#ico-user"/></svg> Студент
-            </button>
-            <button onclick="showScreen('university')" class="btn-ghost">
-              <svg class="btn-ico"><use href="#ico-building"/></svg> ВУЗ
-            </button>
-            <button onclick="showScreen('employer')" class="btn-ghost">
-              <svg class="btn-ico"><use href="#ico-briefcase"/></svg> Работодатель
-            </button>
-          </div>
-        </div>
       </div>
     </section>
 
@@ -348,6 +339,11 @@
       <span class="nav-logo">Diploma<span>Verify</span></span>
       <div class="nav-divider"></div>
       <span class="nav-role">Кабинет студента</span>
+      <span id="header-email-student" style="display:none;margin-left:auto;margin-right:16px;font-size:0.88rem;color:var(--muted)"></span>
+      <button class="notify-badge-btn btn-ghost" title="Уведомления" style="position:relative;padding:8px 12px;margin-right:4px;border-color:transparent">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="notify-badge hidden" style="position:absolute;top:4px;right:4px;background:#dc2626;color:#fff;font-size:0.65rem;font-weight:700;border-radius:999px;min-width:16px;height:16px;display:flex;align-items:center;justify-content:center;padding:0 3px">0</span>
+      </button>
       <button class="btn-logout" id="logout-student">
         <svg class="btn-ico"><use href="#ico-logout"/></svg> Выйти
       </button>
@@ -365,7 +361,6 @@
           <li class="sidebar-item" data-tab="student-qr">
             <svg class="sidebar-ico"><use href="#ico-qr"/></svg> QR и ссылка
           </li>
-
         </ul>
       </aside>
       <section class="content">
@@ -374,7 +369,7 @@
           <div class="page-header">
             <h2>Мои данные и автосверка с реестром</h2>
             <p class="page-desc">
-              Укажите данные как в паспорте. При совпадении ФИО, вуза, специальности и номера диплома запись привязывается к аккаунту — подлинность подтверждается автоматически.
+              Укажите данные как в паспорте. При совпадении ФИО, вуза, специальности и номера диплома запись привязывается к аккаунту - подлинность подтверждается автоматически.
               По желанию укажите <b>ID записи</b> из кабинета вуза (колонка в таблице «Загруженные данные»).
             </p>
           </div>
@@ -385,7 +380,7 @@
             <label>Отчество <input type="text" id="student-pass-pat" autocomplete="additional-name" /></label>
             <div class="form-section-label">Диплом (как в реестре / бланке)</div>
             <label>Номер диплома <input type="text" id="student-identity-diploma-num" autocomplete="off" /></label>
-            <label>ID записи в реестре <small class="inline-hint">необязательно — если вуз сообщил число из таблицы</small>
+            <label>ID записи в реестре <small class="inline-hint">необязательно - если вуз сообщил число из таблицы</small>
               <input type="number" id="student-identity-registry-id" inputmode="numeric" min="1" /></label>
             <label>Полное название учебного заведения <input type="text" id="student-identity-univ" placeholder="Как в дипломе" /></label>
             <label>Специальность / профессия <input type="text" id="student-identity-spec" placeholder="Как в дипломе" /></label>
@@ -423,7 +418,9 @@
           <div class="page-header">
             <h2>QR и ссылка на подтверждение</h2>
             <p class="page-desc">
-              Для <b>подтверждённого</b> диплома создаётся временная ссылка и QR-код. Нажмите «Новый QR», чтобы выдать новую ссылку. Срок действия QR-кода — 24 часа.
+              Для <b>подтверждённого</b> диплома создаётся временная ссылка и QR-код. Работодатель открывает ссылку или сканирует QR - видит ФИО, вуз, специальность и статус.
+              <b>Одноразовый режим:</b> пока никто не открыл ссылку, при повторном заходе в этот раздел остаётся <i>тот же</i> QR (удобно показать с телефона).
+              После <i>первого</i> открытия ссылки токен сгорает - нажмите «Новый QR», чтобы выдать новую ссылку. Срок жизни ссылки - 24 часа (настраивается на сервере).
             </p>
           </div>
           <div id="student-qr-diploma-wrap" class="hidden" style="max-width:560px;margin-bottom:16px">
@@ -459,6 +456,11 @@
       <span class="nav-logo">Diploma<span>Verify</span></span>
       <div class="nav-divider"></div>
       <span class="nav-role">Кабинет ВУЗа</span>
+      <span id="header-email-university" style="display:none;margin-left:auto;margin-right:16px;font-size:0.88rem;color:var(--muted)"></span>
+      <button class="notify-badge-btn btn-ghost" title="Уведомления" style="position:relative;padding:8px 12px;margin-right:4px;border-color:transparent">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="notify-badge hidden" style="position:absolute;top:4px;right:4px;background:#dc2626;color:#fff;font-size:0.65rem;font-weight:700;border-radius:999px;min-width:16px;height:16px;display:flex;align-items:center;justify-content:center;padding:0 3px">0</span>
+      </button>
       <button class="btn-logout" id="logout-university">
         <svg class="btn-ico"><use href="#ico-logout"/></svg> Выйти
       </button>
@@ -473,6 +475,9 @@
           <li class="sidebar-item" data-tab="uni-records">
             <svg class="sidebar-ico"><use href="#ico-db"/></svg> Загруженные данные
           </li>
+          <li class="sidebar-item" data-tab="uni-manual">
+            <svg class="sidebar-ico"><use href="#ico-doc"/></svg> Добавить диплом
+          </li>
           <li class="sidebar-item" data-tab="uni-queue">
             <svg class="sidebar-ico"><use href="#ico-gear"/></svg> Статус обработки
           </li>
@@ -484,6 +489,21 @@
           <div class="page-header">
             <h2>Загрузка Excel / CSV</h2>
             <p class="page-desc">Загрузите файл с данными выпускников для массовой обработки</p>
+          </div>
+          <!-- Статистика ВУЗа -->
+          <div id="uni-stats-grid" class="stat-grid" style="margin-bottom:24px">
+            <div class="stat-card">
+              <div class="stat-icon"><svg class="stat-svg"><use href="#ico-db"/></svg></div>
+              <div class="stat-body"><div class="stat-label">Всего дипломов</div><div class="stat-value" id="stat-total">—</div></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon"><svg class="stat-svg"><use href="#ico-mag"/></svg></div>
+              <div class="stat-body"><div class="stat-label">Верифицировано</div><div class="stat-value" id="stat-verified">—</div></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon"><svg class="stat-svg"><use href="#ico-gear"/></svg></div>
+              <div class="stat-body"><div class="stat-label">Аннулировано</div><div class="stat-value" id="stat-revoked">—</div></div>
+            </div>
           </div>
           <div class="dropzone" id="dropzone">
             <svg class="drop-icon"><use href="#ico-cloud-up"/></svg>
@@ -511,6 +531,7 @@
           <div class="table-toolbar">
             <input type="text" id="records-search" placeholder="Поиск по ФИО или номеру диплома..." />
             <button class="btn-secondary" id="btn-load-records">Обновить</button>
+            <button class="btn-ghost" id="btn-export-records">⬇ Экспорт CSV</button>
           </div>
           <div class="table-wrap">
             <table id="records-table">
@@ -529,6 +550,47 @@
               </tbody>
             </table>
           </div>
+          <div id="records-pagination" style="display:flex;align-items:center;gap:10px;margin-top:12px;max-width:840px">
+            <select id="records-limit-select" style="padding:8px 12px;border-radius:var(--radius);border:1.5px solid var(--border);font-size:0.88rem;background:var(--surface);color:var(--text)">
+              <option value="10">10</option>
+              <option value="25" selected>25</option>
+              <option value="50">50</option>
+            </select>
+            <button id="btn-records-prev" class="btn-ghost" disabled>Назад</button>
+            <span id="records-page-info" style="font-size:0.88rem;color:var(--muted);white-space:nowrap">Стр. 1 из 1</span>
+            <button id="btn-records-next" class="btn-ghost">Вперёд</button>
+          </div>
+        </div>
+
+        <div id="uni-manual" class="tab">
+          <div class="page-header">
+            <h2>Добавить диплом вручную</h2>
+            <p class="page-desc">Создайте одну запись без загрузки файла</p>
+          </div>
+          <form id="form-manual-diploma" style="max-width:480px;display:flex;flex-direction:column;gap:14px">
+            <div class="form-group">
+              <label class="form-label">Номер диплома *</label>
+              <input type="text" id="manual-diploma-number" placeholder="АА 123456" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ФИО выпускника *</label>
+              <input type="text" id="manual-full-name" placeholder="Иванов Иван Иванович" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Специальность</label>
+              <input type="text" id="manual-specialty" placeholder="Информационные системы" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Название ВУЗа</label>
+              <input type="text" id="manual-university" placeholder="Полное наименование" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Год выпуска</label>
+              <input type="text" id="manual-year" placeholder="2024" inputmode="numeric" />
+            </div>
+            <button type="submit" class="btn-primary" style="align-self:flex-start;padding:12px 32px">Создать диплом</button>
+          </form>
+          <p id="manual-diploma-status" class="status-bar hidden" style="margin-top:16px;max-width:480px"></p>
         </div>
 
         <div id="uni-queue" class="tab">
@@ -552,6 +614,11 @@
       <span class="nav-logo">Diploma<span>Verify</span></span>
       <div class="nav-divider"></div>
       <span class="nav-role">Кабинет работодателя</span>
+      <span id="header-email-employer" style="display:none;margin-left:auto;margin-right:16px;font-size:0.88rem;color:var(--muted)"></span>
+      <button class="notify-badge-btn btn-ghost" title="Уведомления" style="position:relative;padding:8px 12px;margin-right:4px;border-color:transparent">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="notify-badge hidden" style="position:absolute;top:4px;right:4px;background:#dc2626;color:#fff;font-size:0.65rem;font-weight:700;border-radius:999px;min-width:16px;height:16px;display:flex;align-items:center;justify-content:center;padding:0 3px">0</span>
+      </button>
       <button class="btn-logout" id="logout-employer">
         <svg class="btn-ico"><use href="#ico-logout"/></svg> Выйти
       </button>
@@ -562,6 +629,9 @@
         <ul>
           <li class="sidebar-item active" data-tab="emp-check">
             <svg class="sidebar-ico"><use href="#ico-mag"/></svg> Проверка кандидата
+          </li>
+          <li class="sidebar-item" data-tab="emp-batch">
+            <svg class="sidebar-ico"><use href="#ico-list"/></svg> Пакетная проверка
           </li>
           <li class="sidebar-item" data-tab="emp-history">
             <svg class="sidebar-ico"><use href="#ico-list"/></svg> История проверок
@@ -594,12 +664,28 @@
           <div id="emp-result" class="verify-result hidden"></div>
         </div>
 
+        <div id="emp-batch" class="tab">
+          <div class="page-header">
+            <h2>Пакетная проверка</h2>
+            <p class="page-desc">Введите номера дипломов по одному на строке — получите результат по каждому</p>
+          </div>
+          <textarea id="emp-batch-input" placeholder="АА 123456&#10;БВ 654321&#10;..." style="width:100%;max-width:560px;height:160px;padding:12px 16px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:0.92rem;font-family:inherit;resize:vertical;background:var(--surface);color:var(--text)"></textarea>
+          <div style="display:flex;gap:10px;margin-top:12px">
+            <button class="btn-primary" id="btn-batch-verify">Проверить все</button>
+            <button class="btn-ghost" id="btn-batch-export" style="display:none">⬇ Экспорт CSV</button>
+          </div>
+          <div id="emp-batch-result" style="margin-top:20px;max-width:840px"></div>
+        </div>
+
         <div id="emp-history" class="tab">
           <div class="page-header">
             <h2>История проверок</h2>
             <p class="page-desc">Журнал всех выполненных проверок дипломов</p>
           </div>
-          <button class="btn-secondary" id="btn-load-history" style="margin-bottom:16px">Обновить</button>
+          <div style="display:flex;gap:10px;margin-bottom:16px">
+            <button class="btn-secondary" id="btn-load-history">Обновить</button>
+            <a id="btn-export-history" href="#" class="btn-ghost" style="text-decoration:none">⬇ Экспорт CSV</a>
+          </div>
           <div class="table-wrap">
             <table>
               <thead>
@@ -627,6 +713,7 @@
       <span class="nav-logo">Diploma<span>Verify</span></span>
       <div class="nav-divider"></div>
       <span class="nav-role">Панель администратора</span>
+      <span id="header-email-admin" style="display:none;margin-left:auto;margin-right:16px;font-size:0.88rem;color:var(--muted)"></span>
       <button class="btn-logout" id="logout-admin">
         <svg class="btn-ico"><use href="#ico-logout"/></svg> Выйти
       </button>
@@ -638,9 +725,52 @@
           <li class="sidebar-item active" data-tab="admin-applications">
             <svg class="sidebar-ico"><use href="#ico-building"/></svg> Заявки ВУЗов
           </li>
+          <li class="sidebar-item" data-tab="admin-stats">
+            <svg class="sidebar-ico"><use href="#ico-mag"/></svg> Статистика
+          </li>
+          <li class="sidebar-item" data-tab="admin-universities">
+            <svg class="sidebar-ico"><use href="#ico-db"/></svg> Все ВУЗы
+          </li>
+          <li class="sidebar-item" data-tab="admin-cache">
+            <svg class="sidebar-ico"><use href="#ico-gear"/></svg> Управление кэшем
+          </li>
         </ul>
       </aside>
       <section class="content">
+
+        <div id="admin-stats" class="tab">
+          <div class="page-header">
+            <h2>Статистика платформы</h2>
+            <p class="page-desc">Общие показатели системы в реальном времени</p>
+          </div>
+          <button class="btn-secondary" id="btn-load-admin-stats" style="margin-bottom:20px">Обновить</button>
+          <div class="stat-grid" style="max-width:900px">
+            <div class="stat-card">
+              <div class="stat-icon"><svg class="stat-svg"><use href="#ico-user"/></svg></div>
+              <div class="stat-body"><div class="stat-label">Всего пользователей</div><div class="stat-value" id="astat-users">—</div></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon"><svg class="stat-svg"><use href="#ico-building"/></svg></div>
+              <div class="stat-body"><div class="stat-label">Студентов</div><div class="stat-value" id="astat-students">—</div></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon"><svg class="stat-svg"><use href="#ico-db"/></svg></div>
+              <div class="stat-body"><div class="stat-label">ВУЗов</div><div class="stat-value" id="astat-universities">—</div></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon"><svg class="stat-svg"><use href="#ico-briefcase"/></svg></div>
+              <div class="stat-body"><div class="stat-label">Работодателей</div><div class="stat-value" id="astat-employers">—</div></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon"><svg class="stat-svg"><use href="#ico-doc"/></svg></div>
+              <div class="stat-body"><div class="stat-label">Всего дипломов</div><div class="stat-value" id="astat-diplomas">—</div></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon"><svg class="stat-svg"><use href="#ico-mag"/></svg></div>
+              <div class="stat-body"><div class="stat-label">Проверок выполнено</div><div class="stat-value" id="astat-checks">—</div></div>
+            </div>
+          </div>
+        </div>
 
         <div id="admin-applications" class="tab active">
           <div class="page-header">
@@ -659,6 +789,38 @@
           </div>
         </div>
 
+        <div id="admin-universities" class="tab">
+          <div class="page-header">
+            <h2>Зарегистрированные ВУЗы</h2>
+            <p class="page-desc">Список всех ВУЗов в системе с возможностью удаления</p>
+          </div>
+          <button class="btn-secondary" id="btn-load-universities" style="margin-bottom:20px">Обновить список</button>
+          <div id="universities-list" class="queue-list" style="max-width:860px">
+            <p class="placeholder-text">Загрузка...</p>
+          </div>
+        </div>
+
+        <div id="admin-cache" class="tab">
+          <div class="page-header">
+            <h2>Управление кэшем</h2>
+            <p class="page-desc">Просмотр статистики и очистка кэша приложения</p>
+          </div>
+          <div class="info-card" style="max-width:560px">
+            <div class="info-card-header">Кэш-менеджер</div>
+            <p style="color:var(--muted);font-size:0.9rem;margin-bottom:16px">
+              Кэш хранит данные в памяти браузера для ускорения работы. TTL (время жизни): профиль 5 мин, записи 2 мин, университеты 30 мин.
+            </p>
+            <div style="display:flex;gap:12px;flex-wrap:wrap">
+              <button class="btn-primary" id="btn-cache-stats" style="flex:1;min-width:180px">
+                Показать статистику
+              </button>
+              <button class="btn-ghost" id="btn-clear-cache" style="flex:1;min-width:180px;color:var(--danger);border-color:var(--danger)">
+                Очистить весь кэш
+              </button>
+            </div>
+          </div>
+        </div>
+
       </section>
     </main>
   </div>
@@ -672,6 +834,30 @@
     </div>
   </div>
 
+  <!-- QR SCAN MODAL -->
+  <div id="qr-scan-modal" class="modal-overlay hidden" aria-hidden="true">
+    <div class="modal-panel qr-modal-panel" role="dialog" aria-labelledby="qr-scan-title">
+      <button class="modal-close" id="qr-scan-close" aria-label="Закрыть">✕</button>
+      <h3 id="qr-scan-title" style="margin-bottom:12px">Сканирование QR-кода</h3>
+      <p style="font-size:0.88rem;color:var(--muted);margin-bottom:16px">Наведите камеру на QR-код диплома</p>
+      <div id="qr-video-wrap" style="position:relative;width:100%;max-width:340px;margin:0 auto 16px;border-radius:12px;overflow:hidden;background:#000">
+        <video id="qr-video" playsinline muted autoplay style="width:100%;display:block;border-radius:12px"></video>
+        <canvas id="qr-canvas" style="display:none"></canvas>
+        <!-- прицел -->
+        <div style="position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center">
+          <div style="width:200px;height:200px;border:2px solid rgba(59,130,246,0.8);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,0.45)"></div>
+        </div>
+      </div>
+      <p id="qr-scan-status" style="text-align:center;font-size:0.88rem;color:var(--muted);min-height:20px"></p>
+      <div style="display:flex;gap:10px;margin-top:16px;justify-content:center">
+        <button type="button" class="btn-ghost" id="qr-scan-cancel">Отмена</button>
+        <button type="button" class="btn-secondary" id="qr-switch-camera" style="display:none">Сменить камеру</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- jsQR fallback для Firefox/Safari -->
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <script src="diplom.js"></script>
 </body>
 </html>

@@ -43,10 +43,11 @@ type ProcessResult struct {
 }
 
 type Worker struct {
-	db     *database.DB
-	kafka  *kafka.Producer
-	log    *logger.Logger
-	jobsCh chan Job
+	db        *database.DB
+	kafka     *kafka.Producer
+	log       *logger.Logger
+	jobsCh    chan Job
+	OnJobDone func(userID int64, jobID string, status string) // callback при завершении job
 }
 
 type Job struct {
@@ -110,6 +111,9 @@ func (w *Worker) processJob(ctx context.Context, job Job) {
 	if err != nil {
 		w.log.Error("Failed to parse file", "jobId", job.ID, "error", err)
 		w.setJobStatus(ctx, job.ID, "failed", err.Error(), 0)
+		if w.OnJobDone != nil {
+			w.OnJobDone(job.UserID, job.ID, "failed")
+		}
 		return
 	}
 
@@ -122,6 +126,11 @@ func (w *Worker) processJob(ctx context.Context, job Job) {
 
 	w.log.Info("Job completed", "jobId", job.ID, "result", result)
 	w.setJobStatus(ctx, job.ID, "done", summary, 100)
+
+	// Уведомляем подписчиков о завершении
+	if w.OnJobDone != nil {
+		w.OnJobDone(job.UserID, job.ID, "done")
+	}
 
 	// Удаляем файл после обработки
 	if err := os.Remove(job.FilePath); err != nil {

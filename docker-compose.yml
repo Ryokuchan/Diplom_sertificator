@@ -1,4 +1,4 @@
-version: '3.8'
+name: umir
 
 services:
   postgres:
@@ -63,8 +63,6 @@ services:
       timeout: 10s
       retries: 15
 
-  # Веб-интерфейс для просмотра PostgreSQL: http://localhost:8081
-  # Вход: СУБД PostgreSQL, Сервер postgres, Пользователь user, Пароль password, БД diasoft
   adminer:
     image: adminer:4
     restart: unless-stopped
@@ -87,9 +85,14 @@ services:
       JWT_SECRET: change-this-secret-in-production
       ENVIRONMENT: production
       PUBLIC_BASE_URL: http://localhost:8080
-      # Первый вход админа (создаётся один раз при пустой БД)
       ADMIN_EMAIL: bb@gmail.com
       ADMIN_PASSWORD: "123123123"
+      ALLOWED_ORIGINS: "http://localhost:8080"
+      SMTP_HOST: "smtp.gmail.com"
+      SMTP_PORT: "587"
+      SMTP_USER: "diplomverify@gmail.com"
+      SMTP_PASSWORD: "xjfhvpowhybycpur"
+      SMTP_FROM: "diplomverify@gmail.com"
     volumes:
       - api_uploads:/app/data
     depends_on:

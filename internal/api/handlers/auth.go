@@ -26,8 +26,7 @@ func NewAuthHandler(db *database.DB, secret string, log *logger.Logger) *AuthHan
 type RegisterRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,min=6"`
-	// ВУЗ — только через POST /auth/university/apply (модерация админом)
-	Role string `json:"role" binding:"required,oneof=student hr"`
+	Role     string `json:"role" binding:"required,oneof=student hr"`
 }
 
 type LoginRequest struct {
@@ -56,7 +55,6 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		"INSERT INTO users (email, password_hash, role) VALUES ($1, $2, $3) RETURNING id",
 		req.Email, string(hash), req.Role,
 	).Scan(&userID)
-
 	if err != nil {
 		h.log.Error("Failed to register user", "error", err)
 		c.JSON(http.StatusConflict, gin.H{"error": "User already exists"})
@@ -65,13 +63,11 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 	token, err := h.generateToken(userID, req.Role)
 	if err != nil {
-		h.log.Error("Failed to generate token", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal error"})
 		return
 	}
 	refreshToken, err := h.generateRefreshToken(userID)
 	if err != nil {
-		h.log.Error("Failed to generate refresh token", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal error"})
 		return
 	}
@@ -81,6 +77,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		"refresh_token": refreshToken,
 		"user_id":       userID,
 		"role":          req.Role,
+		"email":         req.Email,
 	})
 }
 
@@ -106,13 +103,11 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	token, err := h.generateToken(userID, role)
 	if err != nil {
-		h.log.Error("Failed to generate token", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal error"})
 		return
 	}
 	refreshToken, err := h.generateRefreshToken(userID)
 	if err != nil {
-		h.log.Error("Failed to generate refresh token", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal error"})
 		return
 	}
@@ -122,7 +117,53 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		"refresh_token": refreshToken,
 		"user_id":       userID,
 		"role":          role,
+		"email":         req.Email,
 	})
+}
+
+func (h *AuthHandler) RefreshToken(c *gin.Context) {
+	var req struct {
+		RefreshToken string `json:"refresh_token" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	token, err := jwt.Parse(req.RefreshToken, func(token *jwt.Token) (interface{}, error) {
+		return []byte(h.jwtSecret), nil
+	})
+	if err != nil || !token.Valid {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid refresh token"})
+		return
+	}
+
+	claims := token.Claims.(jwt.MapClaims)
+	if claims["type"] != "refresh" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token type"})
+		return
+	}
+
+	userIDFloat, ok := claims["user_id"].(float64)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
+		return
+	}
+	userID := int64(userIDFloat)
+
+	ctx := context.Background()
+	var role string
+	if err := h.db.QueryRow(ctx, "SELECT role FROM users WHERE id = $1", userID).Scan(&role); err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
+		return
+	}
+
+	newToken, err := h.generateToken(userID, role)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal error"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"token": newToken})
 }
 
 func (h *AuthHandler) generateToken(userID int64, role string) (string, error) {
@@ -141,52 +182,4 @@ func (h *AuthHandler) generateRefreshToken(userID int64) (string, error) {
 		"exp":     time.Now().Add(7 * 24 * time.Hour).Unix(),
 	})
 	return token.SignedString([]byte(h.jwtSecret))
-}
-
-func (h *AuthHandler) RefreshToken(c *gin.Context) {
-	var req struct {
-		RefreshToken string `json:"refresh_token" binding:"required"`
-	}
-	
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	token, err := jwt.Parse(req.RefreshToken, func(token *jwt.Token) (interface{}, error) {
-		return []byte(h.jwtSecret), nil
-	})
-
-	if err != nil || !token.Valid {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid refresh token"})
-		return
-	}
-
-	claims := token.Claims.(jwt.MapClaims)
-	if claims["type"] != "refresh" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token type"})
-		return
-	}
-
-	userIDFloat, ok := claims["user_id"].(float64)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
-		return
-	}
-	userID := int64(userIDFloat)
-	
-	ctx := context.Background()
-	var role string
-	err = h.db.QueryRow(ctx, "SELECT role FROM users WHERE id = $1", userID).Scan(&role)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not found"})
-		return
-	}
-
-	newToken, err := h.generateToken(userID, role)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal error"})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"token": newToken})
 }

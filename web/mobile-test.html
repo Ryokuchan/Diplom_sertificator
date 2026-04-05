@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>Тест мобильной адаптации - DiplomaVerify</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 20px;
+      background: #eef2ff;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(37,99,235,0.1);
+    }
+    h1 {
+      color: #2563eb;
+      margin-bottom: 20px;
+      font-size: 2rem;
+    }
+    .fixes-box {
+      margin-bottom: 20px;
+      padding: 16px;
+      background: #d1fae5;
+      border-radius: 8px;
+      border-left: 4px solid #059669;
+    }
+    .fixes-box p {
+      color: #047857;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .fixes-box ul {
+      margin-left: 20px;
+      color: #065f46;
+      line-height: 1.8;
+    }
+    .test-section {
+      margin: 30px 0;
+      padding: 20px;
+      background: #f9fafb;
+      border-radius: 8px;
+      border-left: 4px solid #2563eb;
+    }
+    .test-section h2 {
+      font-size: 1.3rem;
+      margin-bottom: 15px;
+      color: #1e293b;
+    }
+    .status {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin: 5px 5px 5px 0;
+    }
+    .status.success { background: #d1fae5; color: #059669; }
+    .status.info { background: #dbeafe; color: #2563eb; }
+    .status.fix { background: #fef3c7; color: #d97706; }
+    .links {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    .links a {
+      display: inline-block;
+      padding: 12px 24px;
+      background: #2563eb;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .links a:hover {
+      background: #1d4ed8;
+    }
+    .screen-size {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(37,99,235,0.95);
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 1000;
+    }
+    @media (max-width: 640px) {
+      body { padding: 10px; }
+      .container { padding: 20px; }
+      h1 { font-size: 1.5rem; }
+      .test-section h2 { font-size: 1.1rem; }
+      .links { flex-direction: column; }
+      .links a { width: 100%; text-align: center; }
+      .screen-size { bottom: 10px; right: 10px; font-size: 0.75rem; padding: 8px 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>✅ Мобильная адаптация DiplomaVerify</h1>
+    
+    <div class="fixes-box">
+      <p>🔧 Последние исправления:</p>
+      <ul>
+        <li><strong>Hero увеличен</strong> на мобильных (85vh вместо auto)</li>
+        <li><strong>Header исправлен</strong> - элементы больше не накладываются друг на друга</li>
+        <li><strong>Кнопка "Выйти"</strong> отцентрована по вертикали между логотипом и названием кабинета</li>
+        <li><strong>Кнопка "Админ"</strong> на мобильных на отдельной строке с горизонтальной линией сверху</li>
+        <li><strong>Email скрыт</strong> на мобильных для экономии места</li>
+        <li><strong>Navbar адаптивный</strong> - логотип и кнопка на первой строке, роль на второй</li>
+        <li><strong>Landscape режим</strong> оптимизирован</li>
+      </ul>
+    </div>
+
+    <div class="test-section">
+      <h2>Что было сделано</h2>
+      <span class="status success">Адаптивная типографика</span>
+      <span class="status success">Мобильная навигация</span>
+      <span class="status success">Touch-оптимизация</span>
+      <span class="status success">Адаптивные таблицы</span>
+      <span class="status success">Responsive формы</span>
+      <span class="status fix">Hero увеличен</span>
+      <span class="status fix">Header исправлен</span>
+      <span class="status info">SVG убраны на hero</span>
+    </div>
+
+    <div class="test-section">
+      <h2>Кнопки ролей на мобильных</h2>
+      <div style="background: white; padding: 16px; border-radius: 8px; border: 1px solid #e5e7eb; margin-top: 10px; max-width: 400px;">
+        <div style="display: flex; gap: 0; border: 1.5px solid #e2e8f0; border-radius: 10px 10px 0 0; overflow: hidden;">
+          <div style="flex: 1; padding: 11px 6px; text-align: center; font-size: 0.85rem; background: #2563eb; color: white; border-right: 1.5px solid #e2e8f0;">Студент</div>
+          <div style="flex: 1; padding: 11px 6px; text-align: center; font-size: 0.85rem; border-right: 1.5px solid #e2e8f0;">ВУЗ</div>
+          <div style="flex: 1; padding: 11px 6px; text-align: center; font-size: 0.85rem;">Работодатель</div>
+        </div>
+        <div style="border: 1.5px solid #e2e8f0; border-top: 2px solid #e2e8f0; border-radius: 0 0 10px 10px; overflow: hidden;">
+          <div style="padding: 11px 6px; text-align: center; font-size: 0.85rem;">Админ</div>
+        </div>
+      </div>
+      <p style="margin-top: 10px; color: #64748b; font-size: 0.9rem;">
+        ✅ Кнопка "Админ" на отдельной строке<br>
+        ✅ Горизонтальная линия сверху<br>
+        ✅ Нет лишних вертикальных линий<br>
+        ✅ Чистые границы между кнопками
+      </p>
+    </div>
+      <div style="background: #0f172a; color: white; padding: 12px 16px; border-radius: 8px; font-family: monospace; font-size: 0.85rem; margin-top: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+          <span>DiplomaVerify</span>
+          <span style="background: rgba(96,165,250,0.2); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(96,165,250,0.3);">[Выйти]</span>
+        </div>
+        <div style="font-size: 0.75rem; color: #94a3b8;">
+          Кабинет студента
+        </div>
+      </div>
+      <p style="margin-top: 10px; color: #64748b; font-size: 0.9rem;">
+        ✅ Элементы аккуратно расположены<br>
+        ✅ Кнопка "Выйти" отцентрована по вертикали<br>
+        ✅ Email скрыт (экономия места)<br>
+        ✅ Разделитель убран
+      </p>
+    </div>
+
+    <div class="test-section">
+      <h2>Breakpoints</h2>
+      <ul style="margin-left: 20px; line-height: 1.8;">
+        <li><strong>Desktop (>900px):</strong> Полная версия</li>
+        <li><strong>Tablet (≤900px):</strong> Убраны SVG, адаптирована сетка</li>
+        <li><strong>Mobile (≤640px):</strong> Hero 85vh, компактный header</li>
+        <li><strong>Extra Small (≤380px):</strong> Ещё более компактный</li>
+        <li><strong>Landscape:</strong> Оптимизированные отступы</li>
+      </ul>
+    </div>
+
+    <div class="test-section">
+      <h2>Как проверить</h2>
+      <ol style="margin-left: 20px; line-height: 1.8;">
+        <li>Откройте DevTools (F12)</li>
+        <li>Включите режим устройства (Ctrl+Shift+M)</li>
+        <li>Выберите iPhone или другое устройство</li>
+        <li>Войдите в любой кабинет</li>
+        <li>Проверьте header - должно быть аккуратно</li>
+        <li>Поверните устройство - проверьте landscape</li>
+      </ol>
+    </div>
+
+    <div class="links">
+      <a href="static/index.html">Основной сайт</a>
+      <a href="site/diplom.html">Страница диплома</a>
+    </div>
+
+    <div style="margin-top: 30px; padding: 20px; background: #eff6ff; border-radius: 8px; border: 1px solid #bfdbfe;">
+      <p style="color: #1e40af; font-size: 0.95rem; line-height: 1.6;">
+        <strong>📱 Совет:</strong> Измените размер окна браузера, чтобы увидеть адаптацию в реальном времени. 
+        Обратите внимание на header после входа - элементы должны быть аккуратно расположены.
+      </p>
+    </div>
+  </div>
+
+  <div class="screen-size" id="screen-size"></div>
+
+  <script>
+    function updateWidth() {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      let device = 'Desktop';
+      if (width <= 380) device = 'Extra Small';
+      else if (width <= 640) device = 'Mobile';
+      else if (width <= 900) device = 'Tablet';
+      
+      const orientation = width > height ? 'Landscape' : 'Portrait';
+      
+      document.getElementById('screen-size').textContent = 
+        `${device} | ${width}×${height}px | ${orientation}`;
+      document.title = `${device} (${width}px) - Тест адаптации`;
+    }
+    
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+  </script>
+</body>
+</html>
